@@ -30,6 +30,23 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+What the integration handles:
+
+- **Secrets**: the OpenWebif user and password of each receiver live in the
+  Gladys configuration of the integration (password fields are `secret`). They
+  travel only in the `Authorization` header of the requests to that receiver,
+  never in a URL, a log line, an error message or a file. An address typed
+  with credentials in it (`http://user:pass@...`) is refused.
+- **`/data`**: `enigma2-receivers.json` holds, per configuration slot, the
+  address of the receiver, its MAC address, brand and model — no password.
+- **Network**: plain HTTP or HTTPS requests from the container to the
+  addresses typed in the configuration, on the local network; nothing else,
+  no cloud. With HTTPS, the certificate is checked unless "Accept a
+  self-signed certificate" is ticked (OpenWebif serves a self-signed one).
+- **Commands**: standby / wake-up (never deep standby, never reboot),
+  volume, channel change, remote channel keys and on-screen messages. Nothing
+  that opens, unlocks or disarms anything.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+the receivers, their Enigma2 image and OpenWebif (report to their projects).

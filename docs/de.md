@@ -1,0 +1,166 @@
+# Enigma2
+
+Verfolge und steuere deine **Enigma2-Receiver für Satellit, Kabel oder
+Antenne** (VU+, Dreambox, Zgemma, Octagon, GigaBlue, Edision…) aus Gladys, über
+dein lokales Netzwerk und ihre Weboberfläche **OpenWebif**: einschalten oder in
+den Standby schicken, Lautstärke einstellen, Kanal aus deinen Favoriten wählen,
+Kanal und Sendung auf dem Bildschirm sehen, wissen, wann eine Aufnahme läuft,
+und eine Nachricht auf dem Fernseher anzeigen, wenn es an der Tür klingelt.
+
+> **Ohne die Hardware entwickelt: Rückmeldungen willkommen.** Diese Integration
+> wurde mit den von OpenWebif dokumentierten Antworten und mit echten, von den
+> Projekten Home Assistant und openwebifpy veröffentlichten Antworten gebaut
+> und getestet, nicht mit einem echten Receiver. Wenn etwas nicht wie
+> beschrieben funktioniert, sag es im
+> [Gladys-Forum](https://community.gladysassistant.com) oder in den
+> [Issues](https://github.com/guim31/gladys-enigma2/issues).
+
+Diese Integration ist mit keinem Receiver-Hersteller verbunden.
+
+## Was du brauchst
+
+- Gladys Assistant 5.1.0 oder neuer.
+- Einen Receiver mit einem **Enigma2**-Image (openATV, OpenPLi, OpenViX, VTi,
+  Dreambox OS mit OpenWebif…) und dem Plugin **OpenWebif**, das bei den
+  meisten Images installiert und aktiv ist. Öffne
+  `http://<Adresse des Receivers>/` im Browser: Erscheint die OpenWebif-Seite,
+  kann die Integration sie erreichen.
+- Receiver und Gladys im selben Netzwerk. Eine feste IP-Adresse für den
+  Receiver (DHCP-Reservierung im Router) erspart Überraschungen.
+- Falls OpenWebif eine Anmeldung verlangt: den Benutzer (meist `root`) und
+  sein Passwort.
+
+## Einrichtung
+
+In Gladys **Integrationen → Von GitHub installieren**, dann die Integration
+**Enigma2** und ihren Reiter **Konfiguration** öffnen. Bis zu drei Receiver,
+jeweils mit:
+
+- **Adresse**: IP-Adresse oder Name des Receivers, zum Beispiel
+  `192.168.1.20`. Setze `https://` davor für HTTPS und `:Port` dahinter, wenn
+  OpenWebif nicht auf dem Standard-Port lauscht (`192.168.1.20:8080`).
+- **Benutzer** und **Passwort**: nur wenn OpenWebif eine Anmeldung verlangt.
+  Ist nur das Passwort ausgefüllt, wird der Benutzer `root` verwendet.
+- **Name**: der Name des Geräts in Gladys; leer, Marke und Modell, die der
+  Receiver meldet.
+
+Die Optionen gelten für alle Receiver:
+
+- **Selbstsigniertes Zertifikat akzeptieren**: OpenWebif liefert HTTPS mit
+  einem selbstsignierten Zertifikat. Nur für deine eigenen Receiver ankreuzen.
+- **Favoriten-Bouquet**: das TV-Bouquet für die Kanalliste, mit seinem Namen,
+  wie der Receiver ihn anzeigt. Leer: das erste TV-Bouquet.
+- **Aktualisierungsintervall**: 10 Sekunden, 30 Sekunden (Standard) oder
+  1 Minute.
+- **Sprache der Texte**: die Namen der Funktionen beim Hinzufügen eines Geräts
+  und die als Zustand veröffentlichten Texte (Kanal, Sendung). Standardmäßig
+  Französisch.
+
+Speichere und drücke dann **Receiver testen**: eine Zeile pro Receiver, mit
+Modell, OpenWebif-Version und Anzahl gefundener Kanäle, oder was schiefging.
+Geh dann in den Reiter **Erkennung** und füge jeden Receiver zu Gladys hinzu.
+
+## Das Gerät jedes Receivers
+
+Ein Gerät pro Receiver, erkannt an der MAC-Adresse, die er meldet (dasselbe
+Gerät, auch wenn sich seine Adresse ändert).
+
+| Funktion                     | Was sie tut                                                                                       |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| Ein / Standby                | Ein oder **Standby**. Deep-Standby wird nie verwendet: Der Receiver ließe sich nicht mehr wecken. |
+| Lautstärke                   | Die Lautstärke des Receivers, 0 bis 100 %.                                                        |
+| Lautstärke höher / niedriger | Tasten, je eine Stufe.                                                                            |
+| Stumm                        | Eine Taste: Jeder Druck schaltet den Ton aus oder wieder ein.                                     |
+| Nächster / voriger Kanal     | Tasten, innerhalb des Favoriten-Bouquets (vom letzten Kanal geht es zum ersten).                  |
+| Letzter Kanal                | Eine Taste: zurück zum zuvor gesehenen Kanal.                                                     |
+| Kanalnummer                  | Die Position des Kanals im Favoriten-Bouquet; eine eingegebene Nummer schaltet dorthin.           |
+| Lieblingskanäle              | Die Liste der Kanäle des Bouquets: Die Auswahl schaltet um.                                       |
+| Aktueller Kanal              | Sein Name, „Standby“ oder „Nicht erreichbar“.                                                     |
+| Aktuelle Sendung             | Beginn, Ende und Titel, aus dem Programmführer des Receivers.                                     |
+| Nächste Sendung              | Dasselbe für die Sendung danach.                                                                  |
+| Aufnahme läuft               | Ja, solange der Receiver aufnimmt (auch aus dem Standby).                                         |
+
+Ein Receiver, der zwei Abfragen nacheinander nicht beantwortet (ausgeschaltet,
+im Deep-Standby, vom Netzwerk getrennt), wird im Standby mit dem Kanal
+„Nicht erreichbar“ angezeigt, bis er wieder antwortet.
+
+## Dashboard
+
+Das Widget **Enigma2-Receiver** zeigt für den in seinen Einstellungen gewählten
+Receiver: Kanal, aktuelle und nächste Sendung, die Lautstärke (live), den
+Status, die Aufnahme und den Ton, und vier Tasten: **Ein / Standby**,
+**Kanal −**, **Kanal +** und **Stumm**. Im Standby bleibt nur die Ein-Taste.
+
+Die Funktionen des Geräts lassen sich auch in die üblichen Geräte-Widgets
+setzen: Lautstärkeregler, Kanalliste, Fernbedienungstasten.
+
+## Szenen
+
+### Auslöser
+
+Keine, mit Absicht: Jede Änderung, auf die sich das Warten lohnt, ist ein
+Zustand des Geräts, den der Szenen-Editor schon anbietet („der Receiver wird
+eingeschaltet“, „die Aufnahme beginnt“, „der aktuelle Kanal ist…“).
+
+### Aktionen
+
+- **Nachricht am TV anzeigen**: ein Text über dem Bild, als Information,
+  Warnung oder Alarm, für eine bestimmte Anzahl Sekunden (0: bis zum Schließen
+  mit der Fernbedienung). Szenenvariablen sind im Text erlaubt.
+- **Auf Kanal umschalten**: über seine Nummer im Favoriten-Bouquet oder seinen
+  Namen (Groß- und Kleinschreibung sowie Akzente egal, der Anfang des Namens
+  genügt). Seine Ausgabe, der Kanalname, steht den folgenden Aktionen der
+  Szene zur Verfügung.
+
+Die übliche Aktion **Gerät steuern** schaltet ein und aus und regelt die
+Lautstärke.
+
+### Szenen-Ideen
+
+- **Türklingel**: Wenn es klingelt, „Jemand ist an der Tür“ 15 Sekunden lang
+  als Warnung auf dem TV anzeigen.
+- **Gute Nacht**: Um 1 Uhr den Receiver in den Standby schicken, falls er noch
+  läuft.
+- **Nachrichtenzeit**: Werktags um 20 Uhr, wenn der Receiver läuft, auf deinen
+  Nachrichtensender umschalten.
+- **Waschmaschine**: Wenn die Leistung der Waschmaschinen-Steckdose abfällt,
+  „Die Wäsche ist fertig“ auf dem TV anzeigen.
+
+## Aktualisierung und Last
+
+Die Integration liest jeden Receiver selbst, im gewählten Intervall: ein
+Aufruf von `/api/statusinfo`, dazu `/api/getcurrent` (Programmführer), wenn er
+eingeschaltet ist — zwei kleine Anfragen an ein Gerät deines lokalen Netzwerks,
+ohne Kontingent und ohne Cloud. Das Favoriten-Bouquet wird stündlich neu
+gelesen (und bei **Receiver testen**). Nur Änderungen gehen an Gladys, dazu alle
+sechs Stunden ein unveränderter Wert. Ein Receiver wird erst gelesen, wenn sein
+Gerät zu Gladys hinzugefügt wurde.
+
+## Fehlerbehebung
+
+- **„Kein Receiver antwortet“**: Prüfe die Adresse im Browser eines Computers
+  im selben Netzwerk; prüfe, ob OpenWebif auf dem Receiver aktiv ist
+  (Menü → Plugins). Ein Receiver im Deep-Standby antwortet nicht.
+- **„Ein Receiver lehnt Benutzer oder Passwort ab“**: OpenWebif verlangt eine
+  Anmeldung; trage den Benutzer (meist `root`) und das Passwort des Receivers
+  ein.
+- **HTTPS schlägt fehl**: Kreuze **Selbstsigniertes Zertifikat akzeptieren**
+  an oder nutze die HTTP-Adresse.
+- **Kanalliste leer oder falsch**: Trage im **Favoriten-Bouquet** den genauen
+  Namen eines TV-Bouquets des Receivers ein, drücke **Receiver testen** und
+  aktualisiere das Gerät im Reiter Erkennung.
+- **„Kein Programmführer“**: Der Receiver hat keine EPG-Daten für diesen Kanal
+  (häufig bei manchen Lokal- oder Radiosendern).
+- Ausführliche Protokolle: `LOG_LEVEL=debug` am Container der Integration.
+
+## Grenzen
+
+- Ohne die Hardware entwickelt: getestet mit dokumentierten und
+  veröffentlichten OpenWebif-Antworten, nicht mit einem echten Receiver.
+- Bis zu drei Receiver. Nur TV-Bouquets werden angeboten, höchstens 200 Kanäle.
+- Ein Receiver im **Deep-Standby** lässt sich nicht über das Netzwerk wecken
+  (die meisten unterstützen kein Wake-on-LAN): Nutze den Standby.
+- Die Receiver werden nicht automatisch gefunden: Gib ihre Adresse ein.
+- Kein Senderlogo (Picon) und kein Screenshot, keine Verwaltung von Timern.
+- Die Namen der Funktionen werden beim Hinzufügen festgelegt: Ändere die
+  Sprache vorher.

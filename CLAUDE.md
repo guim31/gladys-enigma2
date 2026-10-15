@@ -31,16 +31,23 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
+index.js                          SDK wiring only: src/app.js registers the handlers before connect()
+src/app.js                        every SDK handler -> the hub (also used by the tests)
+src/hub.js                        receivers: identity, favourites, own polling timer, commands
+src/devices.js                    a receiver -> its Gladys device (feature keys) and its states
+src/openwebif/client.js           HTTP client (node:http/https, Basic auth, one request at a time)
+src/openwebif/api.js              the OpenWebif calls and the pure parsers of their answers
 src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/widgets.js                    dashboard widget (manifest `widgets`)
+src/i18n.js                       every text of the code, in en/fr/de/es
+src/issues.js                     deduplicated problem logs (one line when it starts, one when it ends)
+src/store.js                      /data/enigma2-receivers.json (identity of the receivers, no secret)
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
+scripts/probe.mjs                 read-only check of a real receiver (run where the network is)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (same sections, tested)
+test/                             node --test, on the SDK's fake Gladys (integration-sdk/testing);
+                                  helpers/fakeOpenWebif.js serves test/fixtures/openwebif on 127.0.0.1
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +77,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in four languages (English, French, German with
+  "du", Spanish with "usted"): action messages, manifest texts, feature names,
+  widget texts, and `docs/{en,fr,de,es}.md`, kept in sync (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -233,3 +241,37 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Intégration Enigma2 (OpenWebif)
+
+**API utilisée** (OpenWebif, `http(s)://<démodulateur>/api/...`, auth Basic facultative, `root` par
+défaut quand seul le mot de passe est saisi) :
+
+- lecture : `about` (identité ; `info.ifaces[].mac` = identifiant de l'appareil), `statusinfo`
+  (veille, volume, muet, chaîne, programme en cours, enregistrement), `getcurrent` (programmes en
+  cours et suivant ; absent des vieux OpenWebif, `statusinfo` sert alors de repli), `bouquets?stype=tv`,
+  `getservices?sRef=` (chaînes du bouquet) ;
+- commandes : `powerstate?newstate=4|5` (réveil / veille ; **jamais 1**, la veille profonde, dont le
+  réseau ne réveille pas), `vol?set=setNN|up|down|mute` (`mute` **bascule**), `zap?sRef=`,
+  `remotecontrol?command=402|403`, `message?text=&type=1|2|3&timeout=` (`-1` : jusqu'à la télécommande).
+- Une commande répond `{ "result": true|false, "message": ... }` : `false` est une erreur.
+
+**Pièges relevés** :
+
+- Les booléens de `statusinfo` sont des **chaînes** (`"true"`/`"false"`) sauf `muted` ; un programme
+  absent vaut `"N/A"` ; en veille, `currservice_serviceref` manque.
+- Un bouquet mêle chaînes, **marqueurs** (drapeau 64 dans le 2ᵉ champ de la référence, `1:64:...`) et
+  **sous-bouquets** (drapeau 1, `1:7:...`) : ni l'un ni l'autre ne se zappe.
+- Une lecture d'enregistrement a une référence de fichier `1:0:0:0:...:/media/...` : pas une chaîne.
+- Un démodulateur en veille profonde **ne répond plus** : son identité (MAC) est gardée dans `/data`
+  pour publier son appareil au redémarrage ; il n'est montré « éteint » qu'après deux lectures
+  ratées de suite.
+- Les certificats HTTPS d'OpenWebif sont auto-signés : option `allow_self_signed`, décochée par défaut.
+- Rendu du front (5.2.1) : les types télévision autres que `binary`, `volume` et `channel` sont des
+  **boutons poussoirs** (valeur 1 envoyée) ; un type seul de son genre sur l'appareil affiche le nom
+  de l'appareil, pas celui de la fonctionnalité. L'enregistrement est donc en `input/binary` (pas un
+  second `television/binary`, qui serait pris pour la marche).
+- La liste des favoris est un `text/select` (valeurs : références de service) : ses `supported_options`
+  sont mises à jour en silence à chaque publication, sans « Mettre à jour ». Le numéro de chaîne a un
+  `max` fixe (9999) pour que la structure ne change pas avec le bouquet.
+- Pas de déclencheur de scène : tout ce qu'on attendrait est déjà un état de l'appareil.

@@ -1,0 +1,19 @@
+{
+  "info": {
+    "result": true,
+    "name": "Local channel",
+    "ref": "1:0:1:445D:453:1:C00000:0:0:0:"
+  },
+  "now": {
+    "sref": "1:0:1:445D:453:1:C00000:0:0:0:",
+    "title": "",
+    "begin_timestamp": 0,
+    "duration_sec": 0
+  },
+  "next": {
+    "sref": "1:0:1:445D:453:1:C00000:0:0:0:",
+    "title": "",
+    "begin_timestamp": 0,
+    "duration_sec": 0
+  }
+}

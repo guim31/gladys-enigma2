@@ -1,147 +1,534 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Enigma2",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Enigma2 receivers through OpenWebif: power, volume, channels, programme guide, TV messages.",
+    "fr": "Démodulateurs Enigma2 via OpenWebif : veille, volume, chaînes, guide des programmes, messages TV.",
+    "de": "Enigma2-Receiver über OpenWebif: Standby, Lautstärke, Kanäle, Programmführer, Nachrichten am TV.",
+    "es": "Receptores Enigma2 vía OpenWebif: reposo, volumen, canales, guía de programas, mensajes en pantalla."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-enigma2:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-enigma2/main/cover.png",
+  "categories": ["multimedia"],
+  "transports": ["local"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your receivers",
+        "fr": "Vos démodulateurs",
+        "de": "Deine Receiver",
+        "es": "Sus receptores"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Enigma2 receivers (VU+, Dreambox, Zgemma, Octagon, GigaBlue…) with the OpenWebif plugin, installed on most images. Up to three receivers. Not affiliated with any receiver manufacturer.",
+        "fr": "Démodulateurs Enigma2 (VU+, Dreambox, Zgemma, Octagon, GigaBlue…) avec le plugin OpenWebif, présent sur la plupart des images. Jusqu'à trois démodulateurs. Sans lien avec un fabricant.",
+        "de": "Enigma2-Receiver (VU+, Dreambox, Zgemma, Octagon, GigaBlue…) mit dem OpenWebif-Plugin, das die meisten Images mitbringen. Bis zu drei Receiver. Mit keinem Hersteller verbunden.",
+        "es": "Receptores Enigma2 (VU+, Dreambox, Zgemma, Octagon, GigaBlue…) con el plugin OpenWebif, presente en la mayoría de imágenes. Hasta tres receptores. Sin relación con ningún fabricante."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/E2OpenPlugins/e2openplugin-OpenWebif/wiki/OpenWebif-API-documentation",
+          "label": {
+            "en": "OpenWebif API documentation",
+            "fr": "Documentation de l'API OpenWebif",
+            "de": "Dokumentation der OpenWebif-API",
+            "es": "Documentación de la API de OpenWebif"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "receiver_1_address",
+      "type": "string",
+      "label": {
+        "en": "Address",
+        "fr": "Adresse",
+        "de": "Adresse",
+        "es": "Dirección"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
+      "description": {
+        "en": "IP address or name of the receiver, with https:// for HTTPS and :port if not the default.",
+        "fr": "Adresse IP ou nom du démodulateur, avec https:// pour le HTTPS et :port s'il n'est pas standard.",
+        "de": "IP-Adresse oder Name des Receivers, mit https:// für HTTPS und :Port, falls nicht Standard.",
+        "es": "Dirección IP o nombre del receptor, con https:// para HTTPS y :puerto si no es el estándar."
+      },
+      "placeholder": {
+        "en": "e.g. 192.168.1.20",
+        "fr": "ex. 192.168.1.20",
+        "de": "z. B. 192.168.1.20",
+        "es": "p. ej. 192.168.1.20"
+      },
       "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "default": ""
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "receiver_1_username",
+      "type": "string",
+      "label": {
+        "en": "User",
+        "fr": "Utilisateur",
+        "de": "Benutzer",
+        "es": "Usuario"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "description": {
+        "en": "Only if OpenWebif asks for a login (\"root\" on most images). Empty otherwise.",
+        "fr": "Seulement si OpenWebif demande un identifiant (« root » sur la plupart des images). Vide sinon.",
+        "de": "Nur wenn OpenWebif eine Anmeldung verlangt (bei den meisten Images „root“). Sonst leer.",
+        "es": "Solo si OpenWebif pide un inicio de sesión («root» en la mayoría de imágenes). Vacío si no."
+      },
+      "placeholder": {
+        "en": "e.g. root",
+        "fr": "ex. root",
+        "de": "z. B. root",
+        "es": "p. ej. root"
+      },
       "required": false,
-      "default": "celsius",
+      "default": ""
+    },
+    {
+      "key": "receiver_1_password",
+      "type": "secret",
+      "label": {
+        "en": "Password",
+        "fr": "Mot de passe",
+        "de": "Passwort",
+        "es": "Contraseña"
+      },
+      "description": {
+        "en": "The password of that user on the receiver. Empty if OpenWebif asks for none.",
+        "fr": "Le mot de passe de cet utilisateur sur le démodulateur. Vide si OpenWebif n'en demande pas.",
+        "de": "Das Passwort dieses Benutzers auf dem Receiver. Leer, wenn OpenWebif keins verlangt.",
+        "es": "La contraseña de ese usuario en el receptor. Vacío si OpenWebif no pide ninguna."
+      },
+      "required": false
+    },
+    {
+      "key": "receiver_1_name",
+      "type": "string",
+      "label": {
+        "en": "Name",
+        "fr": "Nom",
+        "de": "Name",
+        "es": "Nombre"
+      },
+      "description": {
+        "en": "Name of the device in Gladys. Empty: the brand and model of the receiver.",
+        "fr": "Nom de l'appareil dans Gladys. Vide : la marque et le modèle du démodulateur.",
+        "de": "Name des Geräts in Gladys. Leer: Marke und Modell des Receivers.",
+        "es": "Nombre del dispositivo en Gladys. Vacío: la marca y el modelo del receptor."
+      },
+      "placeholder": {
+        "en": "e.g. Living room receiver",
+        "fr": "ex. Démodulateur salon",
+        "de": "z. B. Receiver Wohnzimmer",
+        "es": "p. ej. Receptor salón"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "receiver_2",
+      "type": "section",
+      "label": {
+        "en": "Receiver 2 (optional)",
+        "fr": "Démodulateur 2 (facultatif)",
+        "de": "Receiver 2 (optional)",
+        "es": "Receptor 2 (opcional)"
+      },
+      "description": {
+        "en": "Same fields, for another receiver of your home.",
+        "fr": "Mêmes champs, pour un autre démodulateur de la maison.",
+        "de": "Dieselben Felder für einen weiteren Receiver bei dir zu Hause.",
+        "es": "Mismos campos, para otro receptor de su casa."
+      }
+    },
+    {
+      "key": "receiver_2_address",
+      "type": "string",
+      "label": {
+        "en": "Address",
+        "fr": "Adresse",
+        "de": "Adresse",
+        "es": "Dirección"
+      },
+      "description": {
+        "en": "IP address or name of the receiver, with https:// for HTTPS and :port if not the default.",
+        "fr": "Adresse IP ou nom du démodulateur, avec https:// pour le HTTPS et :port s'il n'est pas standard.",
+        "de": "IP-Adresse oder Name des Receivers, mit https:// für HTTPS und :Port, falls nicht Standard.",
+        "es": "Dirección IP o nombre del receptor, con https:// para HTTPS y :puerto si no es el estándar."
+      },
+      "placeholder": {
+        "en": "e.g. 192.168.1.20",
+        "fr": "ex. 192.168.1.20",
+        "de": "z. B. 192.168.1.20",
+        "es": "p. ej. 192.168.1.20"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "receiver_2_username",
+      "type": "string",
+      "label": {
+        "en": "User",
+        "fr": "Utilisateur",
+        "de": "Benutzer",
+        "es": "Usuario"
+      },
+      "description": {
+        "en": "Only if OpenWebif asks for a login (\"root\" on most images). Empty otherwise.",
+        "fr": "Seulement si OpenWebif demande un identifiant (« root » sur la plupart des images). Vide sinon.",
+        "de": "Nur wenn OpenWebif eine Anmeldung verlangt (bei den meisten Images „root“). Sonst leer.",
+        "es": "Solo si OpenWebif pide un inicio de sesión («root» en la mayoría de imágenes). Vacío si no."
+      },
+      "placeholder": {
+        "en": "e.g. root",
+        "fr": "ex. root",
+        "de": "z. B. root",
+        "es": "p. ej. root"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "receiver_2_password",
+      "type": "secret",
+      "label": {
+        "en": "Password",
+        "fr": "Mot de passe",
+        "de": "Passwort",
+        "es": "Contraseña"
+      },
+      "description": {
+        "en": "The password of that user on the receiver. Empty if OpenWebif asks for none.",
+        "fr": "Le mot de passe de cet utilisateur sur le démodulateur. Vide si OpenWebif n'en demande pas.",
+        "de": "Das Passwort dieses Benutzers auf dem Receiver. Leer, wenn OpenWebif keins verlangt.",
+        "es": "La contraseña de ese usuario en el receptor. Vacío si OpenWebif no pide ninguna."
+      },
+      "required": false
+    },
+    {
+      "key": "receiver_2_name",
+      "type": "string",
+      "label": {
+        "en": "Name",
+        "fr": "Nom",
+        "de": "Name",
+        "es": "Nombre"
+      },
+      "description": {
+        "en": "Name of the device in Gladys. Empty: the brand and model of the receiver.",
+        "fr": "Nom de l'appareil dans Gladys. Vide : la marque et le modèle du démodulateur.",
+        "de": "Name des Geräts in Gladys. Leer: Marke und Modell des Receivers.",
+        "es": "Nombre del dispositivo en Gladys. Vacío: la marca y el modelo del receptor."
+      },
+      "placeholder": {
+        "en": "e.g. Living room receiver",
+        "fr": "ex. Démodulateur salon",
+        "de": "z. B. Receiver Wohnzimmer",
+        "es": "p. ej. Receptor salón"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "receiver_3",
+      "type": "section",
+      "label": {
+        "en": "Receiver 3 (optional)",
+        "fr": "Démodulateur 3 (facultatif)",
+        "de": "Receiver 3 (optional)",
+        "es": "Receptor 3 (opcional)"
+      },
+      "description": {
+        "en": "Same fields, for another receiver of your home.",
+        "fr": "Mêmes champs, pour un autre démodulateur de la maison.",
+        "de": "Dieselben Felder für einen weiteren Receiver bei dir zu Hause.",
+        "es": "Mismos campos, para otro receptor de su casa."
+      }
+    },
+    {
+      "key": "receiver_3_address",
+      "type": "string",
+      "label": {
+        "en": "Address",
+        "fr": "Adresse",
+        "de": "Adresse",
+        "es": "Dirección"
+      },
+      "description": {
+        "en": "IP address or name of the receiver, with https:// for HTTPS and :port if not the default.",
+        "fr": "Adresse IP ou nom du démodulateur, avec https:// pour le HTTPS et :port s'il n'est pas standard.",
+        "de": "IP-Adresse oder Name des Receivers, mit https:// für HTTPS und :Port, falls nicht Standard.",
+        "es": "Dirección IP o nombre del receptor, con https:// para HTTPS y :puerto si no es el estándar."
+      },
+      "placeholder": {
+        "en": "e.g. 192.168.1.20",
+        "fr": "ex. 192.168.1.20",
+        "de": "z. B. 192.168.1.20",
+        "es": "p. ej. 192.168.1.20"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "receiver_3_username",
+      "type": "string",
+      "label": {
+        "en": "User",
+        "fr": "Utilisateur",
+        "de": "Benutzer",
+        "es": "Usuario"
+      },
+      "description": {
+        "en": "Only if OpenWebif asks for a login (\"root\" on most images). Empty otherwise.",
+        "fr": "Seulement si OpenWebif demande un identifiant (« root » sur la plupart des images). Vide sinon.",
+        "de": "Nur wenn OpenWebif eine Anmeldung verlangt (bei den meisten Images „root“). Sonst leer.",
+        "es": "Solo si OpenWebif pide un inicio de sesión («root» en la mayoría de imágenes). Vacío si no."
+      },
+      "placeholder": {
+        "en": "e.g. root",
+        "fr": "ex. root",
+        "de": "z. B. root",
+        "es": "p. ej. root"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "receiver_3_password",
+      "type": "secret",
+      "label": {
+        "en": "Password",
+        "fr": "Mot de passe",
+        "de": "Passwort",
+        "es": "Contraseña"
+      },
+      "description": {
+        "en": "The password of that user on the receiver. Empty if OpenWebif asks for none.",
+        "fr": "Le mot de passe de cet utilisateur sur le démodulateur. Vide si OpenWebif n'en demande pas.",
+        "de": "Das Passwort dieses Benutzers auf dem Receiver. Leer, wenn OpenWebif keins verlangt.",
+        "es": "La contraseña de ese usuario en el receptor. Vacío si OpenWebif no pide ninguna."
+      },
+      "required": false
+    },
+    {
+      "key": "receiver_3_name",
+      "type": "string",
+      "label": {
+        "en": "Name",
+        "fr": "Nom",
+        "de": "Name",
+        "es": "Nombre"
+      },
+      "description": {
+        "en": "Name of the device in Gladys. Empty: the brand and model of the receiver.",
+        "fr": "Nom de l'appareil dans Gladys. Vide : la marque et le modèle du démodulateur.",
+        "de": "Name des Geräts in Gladys. Leer: Marke und Modell des Receivers.",
+        "es": "Nombre del dispositivo en Gladys. Vacío: la marca y el modelo del receptor."
+      },
+      "placeholder": {
+        "en": "e.g. Living room receiver",
+        "fr": "ex. Démodulateur salon",
+        "de": "z. B. Receiver Wohnzimmer",
+        "es": "p. ej. Receptor salón"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "options",
+      "type": "section",
+      "label": {
+        "en": "Options",
+        "fr": "Options",
+        "de": "Optionen",
+        "es": "Opciones"
+      },
+      "description": {
+        "en": "Shared by every receiver.",
+        "fr": "Communes à tous les démodulateurs.",
+        "de": "Gelten für alle Receiver.",
+        "es": "Comunes a todos los receptores."
+      }
+    },
+    {
+      "key": "allow_self_signed",
+      "type": "boolean",
+      "label": {
+        "en": "Accept a self-signed certificate",
+        "fr": "Accepter un certificat auto-signé",
+        "de": "Selbstsigniertes Zertifikat akzeptieren",
+        "es": "Aceptar un certificado autofirmado"
+      },
+      "description": {
+        "en": "For https:// addresses: OpenWebif serves a self-signed certificate. Tick only for your own receivers.",
+        "fr": "Pour les adresses https:// : OpenWebif sert un certificat auto-signé. À cocher seulement pour vos propres démodulateurs.",
+        "de": "Für https://-Adressen: OpenWebif liefert ein selbstsigniertes Zertifikat. Nur für deine eigenen Receiver ankreuzen.",
+        "es": "Para direcciones https://: OpenWebif sirve un certificado autofirmado. Márquelo solo para sus propios receptores."
+      },
+      "required": false,
+      "default": false
+    },
+    {
+      "key": "bouquet",
+      "type": "string",
+      "label": {
+        "en": "Favourites bouquet",
+        "fr": "Bouquet des favoris",
+        "de": "Favoriten-Bouquet",
+        "es": "Bouquet de favoritos"
+      },
+      "description": {
+        "en": "Name of the TV bouquet offered as channel list, as shown on the receiver. Empty: the first one.",
+        "fr": "Nom du bouquet TV proposé comme liste de chaînes, tel qu'affiché sur le démodulateur. Vide : le premier.",
+        "de": "Name des TV-Bouquets für die Kanalliste, wie auf dem Receiver angezeigt. Leer: das erste.",
+        "es": "Nombre del bouquet de TV ofrecido como lista de canales, tal como aparece en el receptor. Vacío: el primero."
+      },
+      "placeholder": {
+        "en": "e.g. Favourites (TV)",
+        "fr": "ex. Favourites (TV)",
+        "de": "z. B. Favourites (TV)",
+        "es": "p. ej. Favourites (TV)"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "refresh_interval",
+      "type": "select",
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de rafraîchissement",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
+      "description": {
+        "en": "How often each receiver is read (two small requests).",
+        "fr": "Fréquence de lecture de chaque démodulateur (deux petites requêtes).",
+        "de": "Wie oft jeder Receiver gelesen wird (zwei kleine Anfragen).",
+        "es": "Con qué frecuencia se lee cada receptor (dos pequeñas peticiones)."
+      },
+      "required": false,
+      "default": "30",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "10",
+          "label": {
+            "en": "10 seconds",
+            "fr": "10 secondes",
+            "de": "10 Sekunden",
+            "es": "10 segundos"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "30 seconds",
+            "fr": "30 secondes",
+            "de": "30 Sekunden",
+            "es": "30 segundos"
+          }
+        },
+        {
+          "value": "60",
+          "label": {
+            "en": "1 minute",
+            "fr": "1 minute",
+            "de": "1 Minute",
+            "es": "1 minuto"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the texts",
+        "fr": "Langue des textes",
+        "de": "Sprache der Texte",
+        "es": "Idioma de los textos"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Names given to the features when a device is added, and texts published as states (channel, programme).",
+        "fr": "Noms donnés aux fonctionnalités à l'ajout d'un appareil, et textes publiés comme états (chaîne, programme).",
+        "de": "Namen der Funktionen beim Hinzufügen eines Geräts und als Zustand veröffentlichte Texte (Kanal, Sendung).",
+        "es": "Nombres de las funciones al añadir un dispositivo y textos publicados como estados (canal, programa)."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
-    }
-  ],
-  "scene_triggers": [
-    {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
-      "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+      "key": "test_connection",
+      "label": {
+        "en": "Test the receivers",
+        "fr": "Tester les démodulateurs",
+        "de": "Receiver testen",
+        "es": "Probar los receptores"
       },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
-        }
-      ],
-      "variables": [
-        {
-          "key": "target",
-          "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
-        }
-      ]
+      "timeout_seconds": 30
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "show_message",
+      "label": {
+        "en": "Show a message on the TV",
+        "fr": "Afficher un message sur la TV",
+        "de": "Nachricht am TV anzeigen",
+        "es": "Mostrar un mensaje en la TV"
+      },
       "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+        "en": "Shows a text over the picture: the doorbell rang, the washing is done…",
+        "fr": "Affiche un texte par-dessus l'image : on a sonné, la lessive est finie…",
+        "de": "Zeigt einen Text über dem Bild: Es hat geklingelt, die Wäsche ist fertig…",
+        "es": "Muestra un texto sobre la imagen: han llamado a la puerta, la colada ha terminado…"
       },
       "timeout_seconds": 15,
       "fields": [
@@ -149,28 +536,184 @@
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "label": {
+            "en": "Receiver",
+            "fr": "Démodulateur",
+            "de": "Receiver",
+            "es": "Receptor"
+          },
+          "required": true
+        },
+        {
+          "key": "text",
+          "type": "string",
+          "label": {
+            "en": "Message",
+            "fr": "Message",
+            "de": "Nachricht",
+            "es": "Mensaje"
+          },
+          "placeholder": {
+            "en": "e.g. Someone is at the door",
+            "fr": "ex. Quelqu'un sonne à la porte",
+            "de": "z. B. Jemand ist an der Tür",
+            "es": "p. ej. Hay alguien en la puerta"
+          },
+          "required": true
+        },
+        {
+          "key": "message_type",
+          "type": "select",
+          "label": {
+            "en": "Type",
+            "fr": "Type",
+            "de": "Art",
+            "es": "Tipo"
+          },
+          "required": false,
+          "default": "info",
+          "options": [
+            {
+              "value": "info",
+              "label": {
+                "en": "Information",
+                "fr": "Information",
+                "de": "Information",
+                "es": "Información"
+              }
+            },
+            {
+              "value": "warning",
+              "label": {
+                "en": "Warning",
+                "fr": "Avertissement",
+                "de": "Warnung",
+                "es": "Advertencia"
+              }
+            },
+            {
+              "value": "error",
+              "label": {
+                "en": "Alert",
+                "fr": "Alerte",
+                "de": "Alarm",
+                "es": "Alerta"
+              }
+            }
+          ]
+        },
+        {
+          "key": "duration",
+          "type": "number",
+          "label": {
+            "en": "Duration (seconds)",
+            "fr": "Durée (secondes)",
+            "de": "Dauer (Sekunden)",
+            "es": "Duración (segundos)"
+          },
+          "description": {
+            "en": "0: until closed with the remote.",
+            "fr": "0 : jusqu'à fermeture avec la télécommande.",
+            "de": "0: bis zum Schließen mit der Fernbedienung.",
+            "es": "0: hasta cerrarlo con el mando."
+          },
+          "required": false,
+          "default": 10,
+          "min": 0,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "key": "zap_channel",
+      "label": {
+        "en": "Switch to a channel",
+        "fr": "Changer de chaîne",
+        "de": "Auf Kanal umschalten",
+        "es": "Cambiar de canal"
+      },
+      "description": {
+        "en": "Switches to a channel of the favourites bouquet, by its number or its name.",
+        "fr": "Passe sur une chaîne du bouquet des favoris, par son numéro ou son nom.",
+        "de": "Schaltet auf einen Kanal des Favoriten-Bouquets, per Nummer oder Name.",
+        "es": "Cambia a un canal del bouquet de favoritos, por su número o su nombre."
+      },
+      "timeout_seconds": 15,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Receiver",
+            "fr": "Démodulateur",
+            "de": "Receiver",
+            "es": "Receptor"
+          },
+          "required": true
+        },
+        {
+          "key": "channel",
+          "type": "string",
+          "label": {
+            "en": "Channel",
+            "fr": "Chaîne",
+            "de": "Kanal",
+            "es": "Canal"
+          },
+          "placeholder": {
+            "en": "e.g. 3 or France 2",
+            "fr": "ex. 3 ou France 2",
+            "de": "z. B. 3 oder Das Erste",
+            "es": "p. ej. 3 o La 1"
+          },
           "required": true
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "channel_name",
+          "type": "string",
+          "label": {
+            "en": "Channel name",
+            "fr": "Nom de la chaîne",
+            "de": "Kanalname",
+            "es": "Nombre del canal"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "receiver",
+      "label": {
+        "en": "Enigma2 receiver",
+        "fr": "Démodulateur Enigma2",
+        "de": "Enigma2-Receiver",
+        "es": "Receptor Enigma2"
       },
-      "icon": "activity",
+      "description": {
+        "en": "Channel and programme on screen, power, channel and mute buttons.",
+        "fr": "Chaîne et programme à l'écran, boutons veille, chaîne et muet.",
+        "de": "Kanal und Sendung auf dem Bildschirm, Tasten für Standby, Kanal und Stumm.",
+        "es": "Canal y programa en pantalla, botones de reposo, canal y silencio."
+      },
+      "icon": "tv",
+      "settings": [
+        {
+          "key": "receiver",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Receiver",
+            "fr": "Démodulateur",
+            "de": "Receiver",
+            "es": "Receptor"
+          },
+          "required": true
+        }
+      ],
       "action_timeout_seconds": 15
     }
   ]

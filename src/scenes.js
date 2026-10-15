@@ -1,41 +1,37 @@
 // -----------------------------------------------------------------------------
-// Scene actions (SDK v0.14+, Gladys 5.1+).
+// Scene action handlers (manifest `scene_actions`). Each receives the
+// RESOLVED fields (scene variables substituted, defaults applied, validated
+// by the core) and returns the declared outputs.
 //
-// A scene action is an OPERATION a scene author places in a scene, with
-// parameters and a result: "identify this device", "take a snapshot", "clean
-// these rooms". Each one is declared in the manifest `scene_actions` field
-// (key, label, `fields` in the config_schema grammar, scalar `outputs`) and
-// handled here, keyed by that same `key`; index.js registers every entry with
-// `gladys.onSceneAction(key, ...)`.
-//
-// Scene TRIGGERS are the other direction ("this happened"): they are fired by
-// the device that observes the event, see src/devices/motionSensor.js.
-//
-// The rules that matter:
-//   - `fields` arrive RESOLVED: scene variables substituted, defaults applied,
-//     validated by the core; a `"source": "devices"` field is the chosen
-//     device external_id;
-//   - resolve an object of the declared `outputs` (scalars only), readable by
-//     the following actions of the scene, or `undefined` for none. Keys not
-//     declared in the manifest are dropped by the core;
-//   - throwing fails THIS action only: the scene logs it and continues. A
-//     scene action is never a condition: return an output and let the scene
-//     author gate on it;
-//   - never fire a scene event as a consequence of a received action: a scene
-//     bound to that event would loop through the integration.
+// No scene trigger: everything a scene may wait for (switched on, channel,
+// programme, recording) is a state of the receiver device, which the scene
+// editor already offers.
 // -----------------------------------------------------------------------------
 
-import { createLogger } from '@gladysassistant/integration-sdk';
-import { signalDevice } from './devices/index.js';
+import { MESSAGE_TYPE } from './openwebif/api.js';
 
-const logger = createLogger({ name: 'scenes' });
+export const MESSAGE_TYPES = Object.keys(MESSAGE_TYPE);
+export const DEFAULT_DURATION = 10;
+export const MAX_DURATION = 300;
 
 export const SCENE_ACTIONS = {
-  // The ack is awaited under the action's `timeout_seconds` (15 s in the
-  // manifest), counted from the moment the scene reaches the action.
-  async identify_device(gladys, { fields, config }) {
-    logger.info(`Scene action identify_device <- ${fields.device}`);
-    const signalled = await signalDevice(gladys, fields.device, config);
-    return { signalled };
+  /** A message on the TV screen: the doorbell rang, the washing is done... */
+  async show_message(hub, { fields }) {
+    const type = MESSAGE_TYPES.includes(fields.message_type) ? fields.message_type : 'info';
+    const duration = Number(fields.duration);
+    await hub.message(fields.device, {
+      text: fields.text,
+      type,
+      timeout: Number.isFinite(duration)
+        ? Math.max(0, Math.min(MAX_DURATION, Math.round(duration)))
+        : DEFAULT_DURATION,
+    });
+    return undefined;
+  },
+
+  /** Switch to a channel of the favourites, by number, name or reference. */
+  async zap_channel(hub, { fields }) {
+    const channel = await hub.zapTo(fields.device, fields.channel);
+    return { channel_name: channel.name };
   },
 };

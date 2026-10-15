@@ -1,93 +1,84 @@
+// -----------------------------------------------------------------------------
+// Scene actions, run the way a scene runs them (fake Gladys → onSceneAction).
+// -----------------------------------------------------------------------------
+
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { createFakeGladys } from '@gladysassistant/integration-sdk/testing';
-import { DEVICE_BLUEPRINTS } from '../src/devices/index.js';
-import { MOTION_DETECTED_TRIGGER, motionSensor } from '../src/devices/motionSensor.js';
-import { SCENE_ACTIONS } from '../src/scenes.js';
-import { normalizeConfig } from '../src/config.js';
+import { createWorld } from './helpers/world.js';
+import { findChannel } from '../src/hub.js';
+import { parseServices } from '../src/openwebif/api.js';
+import { fixture } from './helpers/fakeOpenWebif.js';
 
-const manifest = JSON.parse(
-  await readFile(new URL('../gladys-assistant-integration.json', import.meta.url), 'utf8'),
-);
-const config = normalizeConfig();
-
-const declarationOf = (list, key) => manifest[list].find((entry) => entry.key === key);
-const keysOf = (list) => (list ?? []).map((entry) => entry.key);
-const deviceIdOf = (gladys, key) =>
-  DEVICE_BLUEPRINTS.find((bp) => bp.key === key).deviceExternalId(gladys);
-
-// Let the async interval callback run to completion.
-const flush = () => new Promise((resolve) => setImmediate(resolve));
-
-test('the motion sensor fires one motion_detected event per detection, none on the clear', async (t) => {
-  t.mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });
-  const gladys = createFakeGladys();
-  const stopPush = motionSensor.startPush(gladys, config);
+test('show_message puts the text on the TV screen, with its type and duration', async () => {
+  const world = await createWorld();
   try {
-    t.mock.timers.tick(60_000);
-    await flush();
-    assert.equal(gladys.fake.sceneEvents.length, 1, 'one detection, one event');
-    assert.equal(gladys.fake.sceneEvents[0].key, MOTION_DETECTED_TRIGGER);
-    assert.equal(gladys.fake.states.at(-1).state, 1, 'the state is still published');
+    const device = world.device().external_id;
+    const result = await world.fake.sceneAction('show_message', {
+      device,
+      text: 'Quelqu’un sonne à la porte',
+      message_type: 'warning',
+      duration: 20,
+    });
+    assert.equal(result.success, true);
+    assert.deepEqual(world.receiver.messages, [
+      { text: 'Quelqu’un sonne à la porte', type: 2, timeout: 20 },
+    ]);
 
-    t.mock.timers.tick(10_000);
-    await flush();
-    assert.equal(gladys.fake.states.at(-1).state, 0, 'the detection is cleared');
-    assert.equal(gladys.fake.sceneEvents.length, 1, 'the clear fires no event');
+    // Duration 0: until dismissed with the remote (-1 for OpenWebif).
+    await world.fake.sceneAction('show_message', { device, text: 'Lessive finie', duration: 0 });
+    assert.deepEqual(world.receiver.messages[1], { text: 'Lessive finie', type: 1, timeout: -1 });
   } finally {
-    stopPush();
+    await world.close();
   }
 });
 
-test('motion_detected data only carries keys the trigger declares', async (t) => {
-  t.mock.timers.enable({ apis: ['setInterval', 'setTimeout'] });
-  const gladys = createFakeGladys();
-  const stopPush = motionSensor.startPush(gladys, config);
+test('show_message refuses an empty text and an unknown device', async () => {
+  const world = await createWorld();
   try {
-    t.mock.timers.tick(60_000);
-    await flush();
+    const empty = await world.fake.sceneAction('show_message', {
+      device: world.device().external_id,
+      text: '   ',
+    });
+    assert.equal(empty.success, false);
+    assert.equal(empty.error, 'Le message est vide.');
+    const unknown = await world.fake.sceneAction('show_message', {
+      device: 'ext:test-integration:receiver:nope',
+      text: 'Hello',
+    });
+    assert.equal(unknown.success, false);
+    assert.equal(world.receiver.messages.length, 0);
   } finally {
-    stopPush();
-  }
-  const [{ data }] = gladys.fake.sceneEvents;
-  const trigger = declarationOf('scene_triggers', MOTION_DETECTED_TRIGGER);
-  // The core keeps the `fields` keys (filters) and the `variables` keys
-  // (exposed to the scene): any other key would be silently dropped.
-  const declared = [...keysOf(trigger.fields), ...keysOf(trigger.variables)];
-  for (const [key, value] of Object.entries(data)) {
-    assert.ok(declared.includes(key), `data.${key} is not declared, the core would drop it`);
-    assert.ok(value === null || typeof value !== 'object', `data.${key} must be a primitive`);
-  }
-  // A `"source": "devices"` filter stores a device external_id.
-  assert.equal(data.device, deviceIdOf(gladys, 'motion-sensor'));
-  const targets = trigger.fields.find((field) => field.key === 'target').options;
-  assert.ok(
-    targets.some((option) => option.value === data.target),
-    `data.target "${data.target}" must be one of the filter options`,
-  );
-});
-
-test('identify_device signals the chosen device and returns the declared outputs', async () => {
-  const gladys = createFakeGladys();
-  const outputs = await SCENE_ACTIONS.identify_device(gladys, {
-    fields: { device: deviceIdOf(gladys, 'light') },
-    config,
-  });
-  assert.deepEqual(outputs, { signalled: true });
-  const declared = keysOf(declarationOf('scene_actions', 'identify_device').outputs);
-  for (const key of Object.keys(outputs)) {
-    assert.ok(declared.includes(key), `output "${key}" is not declared, the core would drop it`);
+    await world.close();
   }
 });
 
-test('identify_device reports a device that cannot signal itself through its output', async () => {
-  // Not a failure: a scene action is never a condition, the scene author
-  // gates the following actions on the output instead.
-  const gladys = createFakeGladys();
-  const outputs = await SCENE_ACTIONS.identify_device(gladys, {
-    fields: { device: deviceIdOf(gladys, 'weather-station') },
-    config,
-  });
-  assert.deepEqual(outputs, { signalled: false });
+test('zap_channel switches by number or name, and returns the channel name', async () => {
+  const world = await createWorld();
+  try {
+    const device = world.device().external_id;
+    const byName = await world.fake.sceneAction('zap_channel', { device, channel: 'arte hd' });
+    assert.deepEqual(byName, { success: true, data: { outputs: { channel_name: 'Arte HD' } } });
+    assert.equal(world.receiver.ref, '1:0:19:283E:3FB:1:C00000:0:0:0:');
+    await world.fake.sceneAction('zap_channel', { device, channel: '2' });
+    assert.equal(world.receiver.ref, '1:0:19:2B66:3F3:1:C00000:0:0:0:');
+    const missing = await world.fake.sceneAction('zap_channel', { device, channel: 'Canal+' });
+    assert.equal(missing.success, false);
+    assert.match(missing.error, /^Chaîne introuvable/);
+  } finally {
+    await world.close();
+  }
+});
+
+test('findChannel matches a number, a reference, a name without case nor accents', () => {
+  const channels = [
+    ...parseServices(fixture('getservices-favourites')),
+    { ref: '1:0:1:1:1:1:0:0:0:0:', name: 'Télé Bleue' },
+  ];
+  assert.equal(findChannel(channels, '1').name, 'Das Erste HD');
+  assert.equal(findChannel(channels, 5).name, '3sat HD');
+  assert.equal(findChannel(channels, '99'), null);
+  assert.equal(findChannel(channels, '1:0:19:2B66:3F3:1:C00000:0:0:0:').name, 'ZDF HD');
+  assert.equal(findChannel(channels, 'tele bleue').name, 'Télé Bleue');
+  assert.equal(findChannel(channels, 'ZDFi').name, 'ZDFinfo HD');
+  assert.equal(findChannel(channels, ''), null);
 });

@@ -1,0 +1,47 @@
+{
+  "services": [
+    {
+      "servicereference": "1:64:1:0:0:0:0:0:0:0::--- Information ---",
+      "servicename": "--- Information ---",
+      "program": 0,
+      "pos": 0
+    },
+    {
+      "servicereference": "1:0:19:283D:3FB:1:C00000:0:0:0:",
+      "servicename": "Das Erste HD",
+      "program": 10301,
+      "pos": 1
+    },
+    {
+      "servicereference": "1:0:19:2B66:3F3:1:C00000:0:0:0:",
+      "servicename": "ZDF HD",
+      "program": 11110,
+      "pos": 2
+    },
+    {
+      "servicereference": "1:0:19:2BA2:3F2:1:C00000:0:0:0:",
+      "servicename": "ZDFinfo HD",
+      "program": 11170,
+      "pos": 3
+    },
+    {
+      "servicereference": "1:7:1:0:0:0:0:0:0:0:FROM BOUQUET \"subbouquet.docs.tv\" ORDER BY bouquet",
+      "servicename": "Documentaries",
+      "program": 0,
+      "pos": 4
+    },
+    {
+      "servicereference": "1:0:19:283E:3FB:1:C00000:0:0:0:",
+      "servicename": "Arte HD",
+      "program": 10302,
+      "pos": 5
+    },
+    {
+      "servicereference": "1:0:19:2B98:3F2:1:C00000:0:0:0:",
+      "servicename": "3sat HD",
+      "program": 11160,
+      "pos": 6
+    }
+  ],
+  "pos": 0
+}
