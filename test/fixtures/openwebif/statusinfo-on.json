@@ -1,0 +1,20 @@
+{
+  "volume": 100,
+  "muted": false,
+  "transcoding": true,
+  "currservice_filename": "",
+  "currservice_id": 38835,
+  "currservice_name": "Flucht aus Saudi-Arabien",
+  "currservice_serviceref": "1:0:19:2BA2:3F2:1:C00000:0:0:0:",
+  "currservice_begin": "16:30",
+  "currservice_begin_timestamp": 1734622200,
+  "currservice_end": "17:15",
+  "currservice_end_timestamp": 1734624900,
+  "currservice_description": "Ein Mädchen kämpft um die Freiheit",
+  "currservice_station": "ZDFinfo HD",
+  "currservice_fulldescription": "Flucht aus Saudi-Arabien\n16:30 - 17:15\n\nSaudi-Arabien / Australien 2019\nIm streng islamischen Königreich Saudi-Arabien haben Frauen immer noch wenig Rechte. Wenn sie ein selbstbestimmtes Leben führen wollen, bleibt ihnen häufig nur die Flucht.\n\nDie 18-jährige Rahaf Mohammed al-Qunun ist eine solche junge Frau, die riskiert hat, dem männlich geprägten Vormundschaftssystem zu entfliehen. Doch der saudische Staat und Rahafs Familie verfolgen die Abtrünnige sogar bis ins Ausland.\nHD-Produktion",
+  "inStandby": "false",
+  "isRecording": "false",
+  "Streaming_list": "",
+  "isStreaming": "false"
+}

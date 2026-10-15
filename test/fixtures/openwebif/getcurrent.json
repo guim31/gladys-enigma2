@@ -1,0 +1,42 @@
+{
+  "info": {
+    "result": true,
+    "name": "ZDFinfo HD",
+    "namespace": "c00000",
+    "provider": "ZDFvision",
+    "width": 1280,
+    "height": 720,
+    "ref": "1:0:19:2BA2:3F2:1:C00000:0:0:0:",
+    "iswidescreen": true,
+    "bqref": "1:7:1:0:0:0:0:0:0:0:FROM BOUQUET \"userbouquet.favourites.tv\" ORDER BY bouquet",
+    "bqname": "Favourites (TV)"
+  },
+  "now": {
+    "sref": "1:0:19:2BA2:3F2:1:C00000:0:0:0:",
+    "sname": "ZDFinfo HD",
+    "id": 38835,
+    "title": "Flucht aus Saudi-Arabien",
+    "shortdesc": "Ein Mädchen kämpft um die Freiheit",
+    "longdesc": "Saudi-Arabien / Australien 2019",
+    "begin_timestamp": 1734622200,
+    "duration_sec": 2700,
+    "remaining": 1500,
+    "now_timestamp": 1734623400,
+    "provider": "ZDFvision",
+    "genre": "Dokumentation"
+  },
+  "next": {
+    "sref": "1:0:19:2BA2:3F2:1:C00000:0:0:0:",
+    "sname": "ZDFinfo HD",
+    "id": 38836,
+    "title": "Terra X History",
+    "shortdesc": "",
+    "longdesc": "",
+    "begin_timestamp": 1734624900,
+    "duration_sec": 2700,
+    "remaining": 2700,
+    "now_timestamp": 1734623400,
+    "provider": "ZDFvision",
+    "genre": ""
+  }
+}

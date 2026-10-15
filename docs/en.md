@@ -1,61 +1,156 @@
-# Demo Devices Template
+# Enigma2
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+Follow and control your **Enigma2 satellite, cable or terrestrial receivers**
+(VU+, Dreambox, Zgemma, Octagon, GigaBlue, Edision…) from Gladys, over your
+local network, through their **OpenWebif** web interface: switch them on or to
+standby, set the volume, change channel from your favourites, see the channel
+and programme on screen, know when a recording runs, and show a message on the
+TV when someone rings at the door.
 
-## What you get
+> **Developed without the hardware: feedback welcome.** This integration was
+> built and tested against the answers documented by OpenWebif and real
+> answers published by the Home Assistant and openwebifpy projects, not against
+> a real receiver. If something does not work as described, please say so on
+> the [Gladys forum](https://community.gladysassistant.com) or in the
+> [issues](https://github.com/guim31/gladys-enigma2/issues).
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+This integration is not affiliated with any receiver manufacturer.
 
-## Configuration
+## What you need
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+- Gladys Assistant 5.1.0 or later.
+- A receiver running an **Enigma2** image (openATV, OpenPLi, OpenViX,
+  VTi, Dreambox OS with OpenWebif…) with the **OpenWebif** plugin, installed
+  and enabled on most images. Open `http://<address of the receiver>/` in a
+  browser: if the OpenWebif page shows, the integration can reach it.
+- The receiver and Gladys on the same network. A fixed IP address for the
+  receiver (DHCP reservation in your router) avoids surprises.
+- If OpenWebif asks for a login: the user (usually `root`) and its password.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+## Set up
 
-## Actions
+In Gladys, **Integrations → Install from GitHub**, then open the **Enigma2**
+integration and its **Configuration** tab. Up to three receivers, each with:
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+- **Address**: the IP address or name of the receiver, for example
+  `192.168.1.20`. Add `https://` in front for HTTPS, and `:port` after if
+  OpenWebif does not listen on the standard port (`192.168.1.20:8080`).
+- **User** and **Password**: only if OpenWebif asks for a login. When only the
+  password is filled, the user `root` is used.
+- **Name**: the name of the device in Gladys; empty, the brand and model the
+  receiver reports.
 
-## Scenes
+The options are shared by every receiver:
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+- **Accept a self-signed certificate**: OpenWebif serves HTTPS with a
+  self-signed certificate. Tick it only for your own receivers.
+- **Favourites bouquet**: the TV bouquet offered as channel list, by its name
+  as the receiver shows it. Empty: the first TV bouquet.
+- **Refresh interval**: 10 seconds, 30 seconds (default) or 1 minute.
+- **Language of the texts**: the feature names given when a device is added,
+  and the texts published as states (channel, programme). French by default.
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+Save, then press **Test the receivers**: one line per receiver, with its model,
+its OpenWebif version and the number of channels found, or what went wrong.
+Then go to the **Discovery** tab and add each receiver to Gladys.
+
+## The device of each receiver
+
+One device per receiver, known by the MAC address the receiver reports (the
+same device even when its address changes).
+
+| Feature                 | What it does                                                                              |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| Power (on / standby)    | On, or **standby**. Deep standby is never used: the receiver could no longer be woken up. |
+| Volume                  | The volume of the receiver, 0 to 100 %.                                                   |
+| Volume up / down        | Buttons, one step each.                                                                   |
+| Mute                    | A button: each press mutes or unmutes the sound.                                          |
+| Next / previous channel | Buttons, inside the favourites bouquet (from the last channel back to the first one).     |
+| Last channel            | A button: back to the channel watched before.                                             |
+| Channel number          | The position of the channel in the favourites bouquet; typing a number switches to it.    |
+| Favourite channels      | A list of the channels of the bouquet: picking one switches to it.                        |
+| Current channel         | Its name, "Standby" or "Unreachable".                                                     |
+| Current programme       | Start, end and title, from the programme guide of the receiver.                           |
+| Next programme          | The same for the programme after it.                                                      |
+| Recording in progress   | Yes while the receiver records (also from its standby).                                   |
+
+A receiver that does not answer two polls in a row (switched off, in deep
+standby, cut from the network) is shown in standby with the channel
+"Unreachable", until it answers again.
 
 ## Dashboard
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+The **Enigma2 receiver** widget shows, for the receiver chosen in its
+settings: the channel and the current and next programmes, the volume (live),
+the state, the recording and the sound, and four buttons: **On / standby**,
+**Channel −**, **Channel +** and **Mute**. In standby, only the power button
+stays.
+
+The features of the device can also be placed in the standard device widgets:
+the volume slider, the channel list, the remote buttons.
+
+## Scenes
+
+### Triggers
+
+None, on purpose: every change worth waiting for is a state of the device, which
+the scene editor already offers ("the receiver is switched on", "the recording
+starts", "the current channel is…").
+
+### Actions
+
+- **Show a message on the TV**: a text over the picture, as an information, a
+  warning or an alert, for a given number of seconds (0: until closed with the
+  remote). Scene variables can be used in the text.
+- **Switch to a channel**: by its number in the favourites bouquet or by its
+  name (case and accents ignored, the beginning of the name is enough). Its
+  output, the channel name, can be used by the next actions of the scene.
+
+The usual **Control a device** action drives the power and the volume.
+
+### Scene ideas
+
+- **Doorbell**: when the doorbell rings, show "Someone is at the door" on the
+  TV for 15 seconds, as a warning.
+- **Good night**: at 1:00, if the receiver is still on, put it to standby.
+- **News time**: at 20:00 on weekdays, if the receiver is on, switch to your
+  news channel.
+- **Washing machine**: when the power of the washing machine plug drops, show
+  "The washing is done" on the TV.
+
+## Refresh and load
+
+The integration reads each receiver itself, at the chosen interval: one call to
+`/api/statusinfo`, plus `/api/getcurrent` (programme guide) while it is on —
+two small requests to a device of your local network, no quota, no cloud. The
+favourites bouquet is read again every hour (and on **Test the receivers**).
+Only the changes are sent to Gladys, plus an unchanged value every six hours.
+A receiver is read only once its device was added to Gladys.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"No receiver answers"**: check the address in a browser from a computer of
+  the same network; check that OpenWebif is enabled on the receiver
+  (Menu → Plugins). A receiver in deep standby does not answer.
+- **"A receiver refuses the user or password"**: OpenWebif asks for a login;
+  fill the user (usually `root`) and the password of the receiver.
+- **HTTPS fails**: tick **Accept a self-signed certificate**, or use the HTTP
+  address.
+- **Empty or wrong channel list**: fill the **Favourites bouquet** with the
+  exact name of a TV bouquet of the receiver, then press **Test the receivers**
+  and update the device in the Discovery tab.
+- **"No programme guide"**: the receiver has no EPG data for that channel
+  (common on some radio or local channels).
+- Detailed logs: set `LOG_LEVEL=debug` on the integration container.
+
+## Limits
+
+- Developed without the hardware: tested against documented and published
+  OpenWebif answers, not against a real receiver.
+- Up to three receivers. Only the TV bouquets are offered, 200 channels at most.
+- A receiver in **deep standby** cannot be woken up over the network
+  (Wake-on-LAN is not supported by most receivers): use the standby.
+- The receivers are not discovered automatically: enter their address.
+- No picture of the channel (picon) and no screenshot, no timer management.
+- The feature names are fixed when the device is added: change the language
+  before adding it.

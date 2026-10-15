@@ -1,0 +1,9 @@
+{
+  "bouquets": [
+    [
+      "1:7:1:0:0:0:0:0:0:0:FROM BOUQUET \"userbouquet.favourites.tv\" ORDER BY bouquet",
+      "Favourites (TV)"
+    ],
+    ["1:7:1:0:0:0:0:0:0:0:FROM BOUQUET \"userbouquet.sport.tv\" ORDER BY bouquet", "Sport"]
+  ]
+}
