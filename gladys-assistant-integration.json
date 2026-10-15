@@ -8,8 +8,8 @@
     "de": "Enigma2-Receiver über OpenWebif: Standby, Lautstärke, Kanäle, Programmführer, Nachrichten am TV.",
     "es": "Receptores Enigma2 vía OpenWebif: reposo, volumen, canales, guía de programas, mensajes en pantalla."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/guim31/gladys-enigma2:1.0.0",
+  "version": "1.0.1",
+  "docker_image": "ghcr.io/guim31/gladys-enigma2:1.0.1",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-enigma2/main/cover.png",
   "categories": ["multimedia"],

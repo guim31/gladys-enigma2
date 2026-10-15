@@ -1,8 +1,8 @@
 {
   "name": "gladys-enigma2",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
-  "description": "Gladys Assistant integration for Enigma2 receivers (VU+, Dreambox, Zgemma\u2026) through OpenWebif.",
+  "description": "Gladys Assistant integration for Enigma2 receivers (VU+, Dreambox, Zgemma…) through OpenWebif.",
   "type": "module",
   "main": "index.js",
   "scripts": {

@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-15
+
 ### Added
 
 - Enigma2 receivers (VU+, Dreambox, Zgemma, Octagon, GigaBlue…) through their
@@ -27,4 +29,5 @@ the notes of the version's GitHub Release.
   a receiver in deep standby keeps its device after a restart.
 - English, French, German and Spanish texts and documentation.
 
-[Unreleased]: https://github.com/guim31/gladys-enigma2/commits/main
+[Unreleased]: https://github.com/guim31/gladys-enigma2/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-enigma2/releases/tag/v1.0.1
